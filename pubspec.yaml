@@ -38,6 +38,10 @@ dependencies:
   firebase_core: ^2.5.0
   cloud_firestore: ^4.3.2
   provider: ^6.0.5
+  at_splash: ^0.0.1
+  animated_login: ^1.6.1
+  firebase_auth: ^4.2.9
+  shared_preferences: ^2.0.18
 
 dev_dependencies:
   flutter_test:

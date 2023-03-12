@@ -2,6 +2,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:securesocialmedia/service/service.dart';
+import 'package:securesocialmedia/ui/chat/chat.dart';
+import 'package:securesocialmedia/ui/splash/splash.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -20,35 +22,8 @@ class App extends StatelessWidget {
     return ListenableProvider(
       create: (context) => AppService(),
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         home: ChatPage(),
-      ),
-    );
-  }
-}
-
-class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
-
-  @override
-  State<ChatPage> createState() => _ChatPageState();
-}
-
-class _ChatPageState extends State<ChatPage> {
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    Provider.of<AppService>(context, listen: false).parseChats();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(Provider.of<AppService>(context, listen: true)
-            .chats
-            .length
-            .toString()),
       ),
     );
   }
