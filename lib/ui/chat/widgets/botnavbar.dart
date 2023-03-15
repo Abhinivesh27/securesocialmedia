@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:securesocialmedia/service/service.dart';
 
 import '../../constants.dart';
 
@@ -24,27 +26,45 @@ class BottomNavBarCustom extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Provider.of<AppService>(context, listen: false)
+                    .updateTabIndex(0);
+              },
               icon: Icon(
                 Icons.chat_sharp,
                 size: 25,
-                color: Consts.primary,
+                color:
+                    Provider.of<AppService>(context, listen: true).tabIndex == 0
+                        ? Consts.primary
+                        : Colors.white54,
               ),
             ),
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Provider.of<AppService>(context, listen: false)
+                    .updateTabIndex(1);
+              },
               icon: Icon(
                 Icons.group,
                 size: 25,
-                color: Colors.white54,
+                color:
+                    Provider.of<AppService>(context, listen: true).tabIndex == 1
+                        ? Consts.primary
+                        : Colors.white54,
               ),
             ),
             IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Provider.of<AppService>(context, listen: false)
+                    .updateTabIndex(2);
+              },
               icon: Icon(
                 Icons.settings,
                 size: 25,
-                color: Colors.white54,
+                color:
+                    Provider.of<AppService>(context, listen: true).tabIndex == 2
+                        ? Consts.primary
+                        : Colors.white54,
               ),
             ),
           ],

@@ -1,8 +1,13 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:securesocialmedia/model/contact.dart';
+import 'package:securesocialmedia/model/user.dart';
 import 'package:securesocialmedia/service/service.dart';
 import 'package:securesocialmedia/ui/constants.dart';
 
@@ -11,18 +16,21 @@ import 'widgets/right.dart';
 
 class MessageChatPage extends StatefulWidget {
   final ContactModel contact;
-  const MessageChatPage({super.key, required this.contact});
+  final String to;
+  const MessageChatPage({super.key, required this.contact, required this.to});
 
   @override
   State<MessageChatPage> createState() => _MessageChatPageState();
 }
 
+FirebaseAuth auth = FirebaseAuth.instance;
+
 class _MessageChatPageState extends State<MessageChatPage> {
-  String uid = "WyGqbFjGjzezzbPPPXWAj01kMCz1";
-  var messages = AppService.getMessages();
   TextEditingController _controller = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
+    var messages = AppService.getMessages();
     return Scaffold(
         appBar: AppBar(
           leading: Padding(
@@ -78,6 +86,7 @@ class _MessageChatPageState extends State<MessageChatPage> {
           child: StreamBuilder<QuerySnapshot>(
               stream: messages,
               builder: (context, snapshot) {
+                //log(snapshot.data!.docs.length.toString() + "  Data length");
                 return SingleChildScrollView(
                     child: snapshot.hasData
                         ? Column(
@@ -106,11 +115,21 @@ class _MessageChatPageState extends State<MessageChatPage> {
                               //message builind list
 
                               ...List.generate(
-                                snapshot.data!.docs.length,
+                                snapshot.data!.docs
+                                    .where((element) =>
+                                        element['users'].contains(widget.to))
+                                    .length,
                                 (index) => snapshot.data!.docs[index]['from'] ==
-                                        uid
+                                        auth.currentUser!.uid
                                     ? GestureDetector(
                                         onDoubleTap: () {
+                                          log(snapshot.data!.docs
+                                                  .where((element) =>
+                                                      element['users']
+                                                          .contains(widget.to))
+                                                  .length
+                                                  .toString() +
+                                              " Log lenth string");
                                           HapticFeedback.vibrate();
                                           AppService.deleteMessage(snapshot
                                               .data!.docs[index]['id']
@@ -123,14 +142,25 @@ class _MessageChatPageState extends State<MessageChatPage> {
                                       )
                                     : GestureDetector(
                                         onLongPress: () {
-                                          HapticFeedback.vibrate();
-                                          AppService.deleteMessage(
-                                              snapshot.data!.docs[index]['id']);
+                                          log(snapshot.data!.docs
+                                              .where((element) =>
+                                                  element['to'] == widget.to)
+                                              .toList()[index]['to']
+                                              .toString());
+
+                                          log(auth.currentUser!.uid +
+                                              " Current uid " +
+                                              "Current index " +
+                                              index.toString());
+                                          // HapticFeedback.vibrate();
+                                          // AppService.deleteMessage(
+                                          //     snapshot.data!.docs[index]['id']);
                                         },
                                         child: LeftMessage(
-                                            contact: widget.contact,
-                                            message: snapshot.data!.docs[index]
-                                                ['text']),
+                                          contact: widget.contact,
+                                          message: snapshot.data!.docs[index]
+                                              ['text'],
+                                        ),
                                       ),
                               )
                               //message 1
@@ -190,7 +220,7 @@ class _MessageChatPageState extends State<MessageChatPage> {
             trailing: IconButton(
                 onPressed: () {
                   AppService.writeMessages(
-                      uid, "7VYss67k2ubUnZqIratAkZwNGmc2", _controller.text);
+                      auth.currentUser!.uid, widget.to, _controller.text);
                   _controller.clear();
                 },
                 icon: Icon(

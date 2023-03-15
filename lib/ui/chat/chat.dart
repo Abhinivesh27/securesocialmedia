@@ -1,9 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:securesocialmedia/service/service.dart';
+import 'package:securesocialmedia/ui/chat/about.dart';
 import 'package:securesocialmedia/ui/constants.dart';
 
 import 'widgets/botnavbar.dart';
 import 'widgets/listofchats.dart';
 import 'widgets/topbar.dart';
+
+List<Widget> bodyItems = [
+  ListOfChats(),
+  AboutSection(),
+  Container(
+    child: Text(
+      "Settings page",
+      style: TextStyle(
+        fontSize: 25,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+  )
+];
 
 class ChatPage extends StatelessWidget {
   const ChatPage({super.key});
@@ -43,7 +60,8 @@ class ChatPage extends StatelessWidget {
               //one
               BottomNavBarCustom(),
               //two
-              ListOfChats(),
+              bodyItems[
+                  Provider.of<AppService>(context, listen: true).tabIndex],
               //three
               TopBar(),
             ],

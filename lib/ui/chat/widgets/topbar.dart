@@ -1,5 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:securesocialmedia/model/contact.dart';
+import 'package:securesocialmedia/service/service.dart';
+import 'package:securesocialmedia/ui/messaging/messaging.dart';
 
 import '../../constants.dart';
 
@@ -31,27 +35,7 @@ class _TopBarState extends State<TopBar> {
         children: [
           //recent chats
 
-          Container(
-            width: MediaQuery.of(context).size.width,
-            height: 60,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: 6,
-              itemBuilder: (context, index) => Container(
-                height: 50,
-                width: 80,
-                decoration: BoxDecoration(
-                    image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: NetworkImage(
-                        PlaceholderData.contacts[index].profileImage,
-                      ),
-                    ),
-                    shape: BoxShape.circle,
-                    color: Consts.primary),
-              ),
-            ),
-          ),
+          CircleImageButton(),
           //search bar
           Container(
             width: MediaQuery.of(context).size.width,
@@ -95,6 +79,62 @@ class _TopBarState extends State<TopBar> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class CircleImageButton extends StatelessWidget {
+  const CircleImageButton({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      height: 60,
+      child: StreamBuilder(
+          stream: AppService.getUsers(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: snapshot.data!.docs.length,
+                itemBuilder: (context, index) => GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => MessageChatPage(
+                          contact: ContactModel()
+                            ..profileImage = snapshot.data!.docs[index]['url']
+                            ..username = snapshot.data!.docs[index]['name'],
+                          to: snapshot.data!.docs[index]['uid'],
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    height: 50,
+                    width: 80,
+                    decoration: BoxDecoration(
+                        image: DecorationImage(
+                          fit: BoxFit.cover,
+                          image:
+                              NetworkImage(snapshot.data!.docs[index]['url']),
+                        ),
+                        shape: BoxShape.circle,
+                        color: Consts.primary),
+                  ),
+                ),
+              );
+            } else {
+              return Center(
+                  child: CircularProgressIndicator(
+                color: Consts.secondary,
+              ));
+            }
+          }),
     );
   }
 }

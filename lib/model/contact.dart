@@ -5,4 +5,5 @@ class ContactModel {
   String time = "";
   bool online = false;
   String uid = "";
+  String email = "";
 }

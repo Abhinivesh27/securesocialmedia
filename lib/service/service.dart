@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:securesocialmedia/model/contact.dart';
 import 'package:securesocialmedia/model/message.dart';
 import 'package:securesocialmedia/model/user.dart';
+import 'package:securesocialmedia/ui/messaging/messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../model/chat.dart';
@@ -23,6 +24,9 @@ CollectionReference _usersRef = app.collection("users");
 FirebaseAuth _auth = FirebaseAuth.instance;
 
 class AppService extends ChangeNotifier {
+  int _tabIndex = 0;
+  int get tabIndex => _tabIndex;
+
   List<String> _chatRooms = [];
   UnmodifiableListView<String> get chatrooms =>
       UnmodifiableListView(_chatRooms);
@@ -31,6 +35,11 @@ class AppService extends ChangeNotifier {
 
   ContactModel _user = ContactModel();
   ContactModel get nowUser => _user;
+
+  void updateTabIndex(int indexValue) {
+    _tabIndex = indexValue;
+    notifyListeners();
+  }
 
   void newLogin(String email, String password) async {
     var response = await _auth.signInWithEmailAndPassword(
@@ -42,8 +51,13 @@ class AppService extends ChangeNotifier {
 
     if (response.user != null) {
       _pref.setString("uid", response.user!.uid);
+      var temp = await app.collection("users").doc(response.user!.uid).get();
+      _user = ContactModel()
+        ..uid = response.user!.uid
+        ..email = email
+        ..profileImage = temp['url']
+        ..username = temp['name'];
     }
-    _user = ContactModel()..uid = response.user!.uid;
 
     notifyListeners();
   }
@@ -57,11 +71,16 @@ class AppService extends ChangeNotifier {
         "name": name,
         "uid": response.user!.uid,
         "email": email,
+        "url":
+            "http://t3.gstatic.com/licensed-image?q=tbn:ANd9GcTUHhgvrnnW7o1YI99qPkrB5g5HJ31yW4NUBRn1clO9X2d3GbCpvyO65DefpJuH89w8qf-LUI_R0gOtjuI"
       };
       await app.collection("users").doc(response.user!.uid).set(data);
       await _pref.setString("uid", response.user!.uid);
     }
-    _user = ContactModel()..uid = response.user!.uid;
+    _user = ContactModel()
+      ..uid = response.user!.uid
+      ..email = email
+      ..username = name;
     notifyListeners();
   }
 
@@ -69,13 +88,29 @@ class AppService extends ChangeNotifier {
     var _pref = await SharedPreferences.getInstance();
     String uid = _pref.getString("uid") ?? "";
     var buffer = await _usersRef.where("uid", isEqualTo: uid).get();
-    _user = ContactModel()..uid = uid;
+    var box = await app.collection("users").doc(uid).get();
+    _user = ContactModel()
+      ..uid = uid
+      ..email = box['email']
+      ..username = box['name']
+      ..profileImage = box['url'];
 
     notifyListeners();
   }
 
   static Stream<QuerySnapshot> getMessages() {
-    return app.collection("messages").orderBy("time").snapshots();
+    return app
+        .collection("messages")
+        .where("users", arrayContains: auth.currentUser!.uid)
+        .orderBy("time")
+        .snapshots();
+  }
+
+  static Stream<QuerySnapshot> getUsers() {
+    return app
+        .collection("users")
+        .where("uid", isNotEqualTo: auth.currentUser!.uid)
+        .snapshots();
   }
 
   static void writeMessages(String from, String to, String message) async {
@@ -88,7 +123,8 @@ class AppService extends ChangeNotifier {
       "text": message,
       "time": int.parse(
           "${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}"),
-      "id": hash
+      "id": hash,
+      "users": [from, to],
     };
 
     await app.collection("messages").doc(hash.toString()).set(data);
@@ -119,14 +155,28 @@ class AppService extends ChangeNotifier {
     File image = File(file!.path);
     var ref = _storage.ref().child("images/${image.hashCode}");
     try {
+      var _pref = await SharedPreferences.getInstance();
+      String uidData = _pref.getString("uid") ?? "";
       var buffer = ref.putFile(image);
       await buffer.whenComplete(() async {
         var url = await ref.getDownloadURL();
-        _user = ContactModel()..profileImage = url.toString();
+        Future.delayed(Duration(seconds: 10));
+        Map<String, String> data = {"url": url.toString()};
+        await app.collection("users").doc(uidData).update(data);
       });
     } catch (e) {
       log("Profile photo not added up " + e.toString());
     }
+    notifyListeners();
+  }
+
+  void logoutUser() async {
+    _auth.signOut();
+    var _pref = await SharedPreferences.getInstance();
+    _pref.clear();
+    _user = ContactModel();
+    _chatRooms = [];
+
     notifyListeners();
   }
 }
