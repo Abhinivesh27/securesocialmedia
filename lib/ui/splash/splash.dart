@@ -21,9 +21,10 @@ class _SplashScreenState extends State<SplashScreen> {
   String uid = "";
   void checkLogin() async {
     var _pref = await SharedPreferences.getInstance();
-    String data = await _pref.getString("uid") ?? "no";
+    String data = _pref.getString("uid") ?? "";
     log(data.toString());
-    if (data != "no") {
+    if (data != "") {
+      log(data + " UID BLASTED");
       setState(() {
         isLoggedIn = true;
         uid = data;

@@ -23,7 +23,7 @@ class App extends StatelessWidget {
       create: (context) => AppService(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: ChatPage(),
+        home: SplashScreen(),
       ),
     );
   }

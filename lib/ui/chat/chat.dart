@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:securesocialmedia/ui/constants.dart';
 
+import 'widgets/botnavbar.dart';
+import 'widgets/listofchats.dart';
 import 'widgets/topbar.dart';
 
 class ChatPage extends StatelessWidget {
@@ -39,23 +41,9 @@ class ChatPage extends StatelessWidget {
           child: Stack(
             children: [
               //one
-              Container(
-                height: MediaQuery.of(context).size.height,
-                alignment: Alignment.bottomCenter,
-                color: Consts.secondary,
-                child: Text("Hello"),
-              ),
+              BottomNavBarCustom(),
               //two
-              Container(
-                height: MediaQuery.of(context).size.height * 0.8,
-                decoration: BoxDecoration(
-                  color: Consts.primary,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(40),
-                    bottomRight: Radius.circular(40),
-                  ),
-                ),
-              ),
+              ListOfChats(),
               //three
               TopBar(),
             ],

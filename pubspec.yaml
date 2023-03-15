@@ -42,6 +42,10 @@ dependencies:
   animated_login: ^1.6.1
   firebase_auth: ^4.2.9
   shared_preferences: ^2.0.18
+  google_fonts: ^4.0.3
+  firebase_storage: ^11.0.15
+  image_picker: ^0.8.7
+ 
 
 dev_dependencies:
   flutter_test:

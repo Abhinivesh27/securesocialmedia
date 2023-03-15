@@ -35,7 +35,18 @@ class _LoginScreenState extends State<LoginScreen> {
         return a;
       },
       onSignup: (data) async {
+        try {
+          Provider.of<AppService>(context, listen: false)
+              .createUser(data.name, data.password, data.email);
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatPage(),
+            ),
+          );
+        } catch (e) {}
         var a = await "Abhi";
+
         return a;
       },
       loginMobileTheme:
