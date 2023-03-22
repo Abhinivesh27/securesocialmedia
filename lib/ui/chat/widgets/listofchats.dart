@@ -22,7 +22,10 @@ class ListOfChats extends StatefulWidget {
 class _ListOfChatsState extends State<ListOfChats> {
   List<ContactModel> userDatas = [];
   void setUserData() async {
-    var buffer = await app.collection("users").get();
+    var buffer = await app
+        .collection("users")
+        .where("uid", isNotEqualTo: auth.currentUser!.uid)
+        .get();
     buffer.docs.forEach((element) {
       userDatas.add(ContactModel()
         ..username = element['name']
@@ -41,8 +44,6 @@ class _ListOfChatsState extends State<ListOfChats> {
 
   @override
   Widget build(BuildContext context) {
-    log(userDatas.length.toString() + " List legth");
-
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
       width: MediaQuery.of(context).size.width,

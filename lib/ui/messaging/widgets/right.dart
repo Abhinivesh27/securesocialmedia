@@ -7,8 +7,10 @@ class RightMessage extends StatelessWidget {
   const RightMessage({
     super.key,
     required this.message,
+    required this.type,
   });
   final String message;
+  final bool type;
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -28,13 +30,22 @@ class RightMessage extends StatelessWidget {
                 ),
                 color: Consts.secondary,
               ),
-              child: Text(
-                message,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Consts.primary,
-                ),
-              ),
+              child: type
+                  ? Container(
+                      constraints:
+                          BoxConstraints(maxHeight: 150, maxWidth: 200),
+                      child: Image.network(
+                        message,
+                        fit: BoxFit.contain,
+                      ),
+                    )
+                  : Text(
+                      message,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Consts.primary,
+                      ),
+                    ),
             ),
           ],
         ),

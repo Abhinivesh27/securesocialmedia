@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:securesocialmedia/service/service.dart';
 import 'package:securesocialmedia/ui/chat/about.dart';
 import 'package:securesocialmedia/ui/constants.dart';
-
 import 'widgets/botnavbar.dart';
 import 'widgets/listofchats.dart';
 import 'widgets/topbar.dart';

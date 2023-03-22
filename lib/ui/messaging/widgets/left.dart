@@ -9,10 +9,12 @@ class LeftMessage extends StatelessWidget {
     super.key,
     required this.contact,
     required this.message,
+    required this.type,
   });
 
   final ContactModel contact;
   final String message;
+  final bool type;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -44,12 +46,21 @@ class LeftMessage extends StatelessWidget {
               ),
               color: Consts.bg,
             ),
-            child: Text(
-              message,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-              ),
-            ),
+            child: type
+                ? Container(
+                    constraints: BoxConstraints(maxHeight: 150, maxWidth: 200),
+                    child: Image.network(
+                      message,
+                      fit: BoxFit.contain,
+                    ),
+                  )
+                : Text(
+                    message,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: Consts.primary,
+                    ),
+                  ),
           ),
         ],
       ),

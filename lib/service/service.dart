@@ -12,6 +12,7 @@ import 'package:securesocialmedia/model/message.dart';
 import 'package:securesocialmedia/model/user.dart';
 import 'package:securesocialmedia/ui/messaging/messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tflite/tflite.dart';
 
 import '../model/chat.dart';
 
@@ -24,6 +25,12 @@ CollectionReference _usersRef = app.collection("users");
 FirebaseAuth _auth = FirebaseAuth.instance;
 
 class AppService extends ChangeNotifier {
+  bool _isHarmfull = false;
+  bool get isHarmfull => _isHarmfull;
+
+  bool _isPhoto = false;
+  bool get isPhoto => true;
+
   int _tabIndex = 0;
   int get tabIndex => _tabIndex;
 
@@ -113,7 +120,8 @@ class AppService extends ChangeNotifier {
         .snapshots();
   }
 
-  static void writeMessages(String from, String to, String message) async {
+  static void writeMessages(
+      String from, String to, String message, bool type) async {
     int hash =
         "${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}"
             .hashCode;
@@ -121,6 +129,7 @@ class AppService extends ChangeNotifier {
       "from": from,
       "to": to,
       "text": message,
+      "type": type,
       "time": int.parse(
           "${DateTime.now().hour}${DateTime.now().minute}${DateTime.now().second}"),
       "id": hash,
@@ -146,26 +155,48 @@ class AppService extends ChangeNotifier {
     app.collection("chatrooms").doc(chatRoomId).set(data);
   }
 
-  void uploadImage() async {
+  void uploadImage(String? to) async {
     FirebaseStorage _storage = FirebaseStorage.instance;
 
     var instance = ImagePicker();
     XFile? file = await instance.pickImage(source: ImageSource.gallery);
 
     File image = File(file!.path);
-    var ref = _storage.ref().child("images/${image.hashCode}");
-    try {
-      var _pref = await SharedPreferences.getInstance();
-      String uidData = _pref.getString("uid") ?? "";
-      var buffer = ref.putFile(image);
-      await buffer.whenComplete(() async {
-        var url = await ref.getDownloadURL();
-        Future.delayed(Duration(seconds: 10));
-        Map<String, String> data = {"url": url.toString()};
-        await app.collection("users").doc(uidData).update(data);
-      });
-    } catch (e) {
-      log("Profile photo not added up " + e.toString());
+    await Tflite.loadModel(
+        model: 'assets/model.tflite', labels: 'assets/labels.txt');
+
+    var output = await Tflite.runModelOnImage(
+        path: image.path,
+        numResults: 2,
+        threshold: 0.5,
+        imageMean: 127.5,
+        imageStd: 127.5);
+    if (output != null && output.isNotEmpty) {
+      output[0]['label'].toString() == "0 Harmfull"
+          ? _isHarmfull = true
+          : _isHarmfull = false;
+    }
+
+    if (isHarmfull != true) {
+      var ref = _storage.ref().child("images/${image.hashCode}");
+      try {
+        var _pref = await SharedPreferences.getInstance();
+        String uidData = _pref.getString("uid") ?? "";
+        var buffer = ref.putFile(image);
+        await buffer.whenComplete(() async {
+          var url = await ref.getDownloadURL();
+          Future.delayed(Duration(seconds: 10));
+
+          if (_isPhoto) {
+            writeMessages(auth.currentUser!.uid, to ?? "", url, true);
+          } else {
+            Map<String, String> data = {"url": url.toString()};
+            await app.collection("users").doc(uidData).update(data);
+          }
+        });
+      } catch (e) {
+        log("Profile photo not added up " + e.toString());
+      }
     }
     notifyListeners();
   }
@@ -177,6 +208,11 @@ class AppService extends ChangeNotifier {
     _user = ContactModel();
     _chatRooms = [];
 
+    notifyListeners();
+  }
+
+  void updateMessageType(bool isPhoto) {
+    _isPhoto = true;
     notifyListeners();
   }
 }

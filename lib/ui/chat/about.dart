@@ -48,7 +48,7 @@ class _AboutSectionState extends State<AboutSection> {
           GestureDetector(
             onTap: () {
               getImage();
-              Provider.of<AppService>(context, listen: false).uploadImage();
+              Provider.of<AppService>(context, listen: false).uploadImage('');
 
               getImage();
             },

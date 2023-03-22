@@ -1,0 +1,2 @@
+0 Harmfull
+1 NotHarmfull
